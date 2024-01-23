@@ -56,19 +56,17 @@ pub fn is_class_deleted(class_name: &TyName) -> bool {
         || is_godot_type_deleted(class_name)
 }
 
-pub fn is_godot_type_deleted(ty_name: &TyName) -> bool {
+pub fn is_godot_type_deleted_str(ty: &str) -> bool {
     // Exclude experimental APIs unless opted-in.
-    if !cfg!(feature = "experimental-godot-api") && is_class_experimental(ty_name) {
+    if !cfg!(feature = "experimental-godot-api") && is_class_experimental_str(ty) {
         return true;
     }
-
-    let class_name = ty_name.godot_ty.as_str();
 
     // OpenXR has not been available for macOS before 4.2.
     // See e.g. https://github.com/GodotVR/godot-xr-tools/issues/479.
     // Do not hardcode a list of OpenXR classes, as more may be added in future Godot versions; instead use prefix.
     #[cfg(all(before_api = "4.2", target_os = "macos"))]
-    if class_name.starts_with("OpenXR") {
+    if ty.starts_with("OpenXR") {
         return true;
     }
 
@@ -76,11 +74,11 @@ pub fn is_godot_type_deleted(ty_name: &TyName) -> bool {
     // in 4.2 it loads at the Scene level
     // see: https://github.com/godotengine/godot/pull/81305
     #[cfg(before_api = "4.2")]
-    if class_name == "ThemeDB" {
+    if ty == "ThemeDB" {
         return true;
     }
 
-    match class_name {
+    match ty {
         // Hardcoded cases that are not accessible.
         // Only on Android.
         | "JavaClassWrapper"
@@ -113,12 +111,20 @@ pub fn is_godot_type_deleted(ty_name: &TyName) -> bool {
     }
 }
 
+pub fn is_godot_type_deleted(ty_name: &TyName) -> bool {
+    // Exclude experimental APIs unless opted-in.
+    if !cfg!(feature = "experimental-godot-api") && is_class_experimental(ty_name) {
+        return true;
+    }
+    return is_godot_type_deleted_str(ty_name.godot_ty.as_str());
+}
+
 #[rustfmt::skip]
-fn is_class_experimental(class_name: &TyName) -> bool {
+fn is_class_experimental_str(class_name: &str) -> bool {
     // These classes are currently hardcoded, but the information is available in Godot's doc/classes directory.
     // The XML file contains a property <class name="NavigationMesh" ... is_experimental="true">.
 
-    match class_name.godot_ty.as_str() {
+    match class_name {
         | "GraphEdit"
         | "GraphNode"
         | "NavigationAgent2D"
@@ -152,6 +158,11 @@ fn is_class_experimental(class_name: &TyName) -> bool {
         
         => true, _ => false
     }
+}
+
+
+fn is_class_experimental(class_name: &TyName) -> bool {
+    return is_class_experimental_str(class_name.godot_ty.as_str());
 }
 
 /// Whether a method is available in the method table as a named accessor.

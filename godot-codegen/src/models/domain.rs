@@ -692,9 +692,12 @@ pub struct TyName {
 
 impl TyName {
     pub fn from_godot(godot_ty: &str) -> Self {
+        let rust_ty_str = &conv::to_pascal_case(godot_ty);
+        
         Self {
             godot_ty: godot_ty.to_owned(),
-            rust_ty: ident(&conv::to_pascal_case(godot_ty)),
+            // TODO: fix ident!
+            rust_ty: ident(&rust_ty_str),
         }
     }
 

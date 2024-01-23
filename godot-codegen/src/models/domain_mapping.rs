@@ -533,7 +533,9 @@ impl Enum {
             .collect();
 
         Self {
-            name: ident(&rust_enum_name),
+            name: ident(&rust_enum_name
+                .replace("Variant.Type", "VariantType")
+                .replace("Variant.Operator", "VariantOperator")),
             godot_name: godot_name.clone(),
             is_bitfield,
             enumerators,

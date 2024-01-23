@@ -90,7 +90,9 @@ pub fn shout_to_pascal(shout_case: &str) -> String {
 // Enum conversions
 
 pub fn make_enum_name(enum_name: &str) -> Ident {
-    ident(&make_enum_name_str(enum_name))
+    ident(&make_enum_name_str(enum_name)
+        .replace("Variant.Type", "VariantType")
+        .replace("Variant.Operator", "VariantOperator"))
 }
 
 pub fn make_enum_name_str(enum_name: &str) -> String {
@@ -109,13 +111,17 @@ pub fn make_enumerator_names(
 ) -> Vec<Ident> {
     debug_assert_eq!(
         make_enum_name(godot_enum_name),
-        godot_enum_name,
+        godot_enum_name
+            .replace("Variant.Type", "VariantType")
+            .replace("Variant.Operator", "VariantOperator"),
         "enum name must already be mapped"
     );
 
     shorten_enumerator_names(godot_class_name, godot_enum_name, enumerators)
         .iter()
-        .map(|e| ident(e))
+        .map(|e| ident(&e
+            .replace("Variant.Type", "VariantType")
+            .replace("Variant.Operator", "VariantOperator")))
         .collect()
 }
 
